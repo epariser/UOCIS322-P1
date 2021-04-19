@@ -113,9 +113,9 @@ def respond(sock):
                 with open(fAd) as f:
                     transmit(STATUS_OK, sock)
                     transmit(f.read(), sock)
-        elif (URL not in root):
-            transmit(STATUS_NOT_FOUND, sock)
-            transmit("404 not found",sock)
+            else:
+                transmit(STATUS_NOT_FOUND, sock)
+                transmit("404 not found",sock)
         
     else:
         log.info("Unhandled request: {}".format(request))
