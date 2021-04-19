@@ -98,7 +98,6 @@ def respond(sock):
 
     URL = parts[1]
     fAd = root + URL #file address
-    print(URL)
     URL_lang = URL.split(".")[-1] #just the html or css part
     
     if len(parts) > 1 and parts[0] == "GET":
