@@ -23,6 +23,8 @@ log = logging.getLogger(__name__)
 import socket    # Basic TCP/IP communication on the internet
 import _thread   # Response computation runs concurrently with main program
 
+import os
+import string
 
 def listen(portnum):
     """
@@ -90,13 +92,36 @@ def respond(sock):
     log.info("Request was {}\n***\n".format(request))
 
     parts = request.split()
+    log.info(str(parts))
+    
+    root = get_options().DOCROOT
+
+    URL = parts[1]
+    fAd = root + URL #file address
+    print(URL)
+    URL_lang = URL.split(".")[-1] #just the html or css part
+    
     if len(parts) > 1 and parts[0] == "GET":
-        transmit(STATUS_OK, sock)
-        transmit(CAT, sock)
+        if any(x in URL for x in ['~','//','..']):
+            transmit(STATUS_FORBIDDEN, sock)
+            transmit("403 Forbidden", sock)
+
+        
+        elif (URL_lang == "html" or URL_lang == "css"):   #split the string at "." to isolate language portion
+                                                        #could check without splitting but then we could be accepting ".cssx" for example
+            if os.path.isfile(fAd):
+                with open(fAd) as f:
+                    transmit(STATUS_OK, sock)
+                    transmit(f.read(), sock)
+        elif (URL not in root):
+            transmit(STATUS_NOT_FOUND, sock)
+            transmit("404 not found",sock)
+        
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
         transmit("\nI don't handle this request: {}\n".format(request), sock)
+
 
     sock.shutdown(socket.SHUT_RDWR)
     sock.close()
